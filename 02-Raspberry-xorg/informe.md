@@ -83,7 +83,7 @@ Es decir que la aplicación se ejecuta (lógica, cálculos, archivos) en la Rasp
 | Modelo de Raspberry Pi | Raspberry Pi 3 B+ |
 | Sistema operativo | Raspberry Pi OS Lite (sin entorno de escritorio) |
 | Usuario | `grupo4` |
-| Dirección IP | `192.168.60.182` |
+| Dirección IP | `192.168.60.215` |
 | Servidor X del cliente | WSL2 (WSLg / XWayland) |
 
 ---
@@ -115,7 +115,8 @@ Xorg -version
 
 ### Evidencia
 
-Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
+![](./images/Image1.png)
+
 
 ---
 
@@ -133,7 +134,7 @@ sudo sshd -T | grep -i x11
 - `grep -i x11`: filtra las opciones relacionadas con X11, sin distinguir entre mayúsculas y minúsculas.
 
 Resultado obtenido:
-
+![](image.png)
 ```
 x11displayoffset 10
 x11forwarding yes
@@ -142,7 +143,7 @@ x11uselocalhost yes
 
 ### Evidencia
 
-Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
+![](./images/image2.png)
 
 ---
 
@@ -158,7 +159,7 @@ ssh -X grupo4@192.168.60.182
 
 - `ssh`: establece una conexión mediante el protocolo SSH.
 - `-X`: habilita el reenvío de X11 (*X11 Forwarding*).
-- `grupo4@192.168.60.182`: usuario y dirección IP de la Raspberry Pi.
+- `grupo4@192.168.60.215`: usuario y dirección IP de la Raspberry Pi.
 
 Una vez autenticado, se comprobó que SSH configuró la variable `DISPLAY`:
 
@@ -170,13 +171,12 @@ El resultado esperado es similar a `localhost:10.0`.
 
 ### Evidencia
 
-Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
-
+![](./images/image3.png)
 ---
 
 ## 8. Ejecución de aplicaciones gráficas de prueba
 
-Dentro de la sesión SSH se ejecutaron tres aplicaciones gráficas: `xeyes` y `xclock` (incluidas en `x11-apps`, de bajo consumo) y el juego `quadrapassel` (un Tetris), que permite probar una aplicación interactiva real.
+Dentro de la sesión SSH se ejecutaron dos aplicaciones gráficas: `xeyes` y `xclock` (incluidas en `x11-apps`, de bajo consumo).
 
 ```
 xeyes &
@@ -189,21 +189,9 @@ xclock &
 - `xclock`: muestra un reloj analógico.
 - `&`: ejecuta el programa en segundo plano, dejando libre la terminal.
 
-Se instaló el juego sin gestor de ventanas ni entorno de escritorio:
-
-```
-sudo apt install quadrapassel -y
-```
-
-Y se ejecutó:
-
-```
-quadrapassel &
-```
-
 ### Evidencia
 
-Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
+![](./images/image4.png)
 
 ---
 
