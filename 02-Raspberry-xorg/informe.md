@@ -15,10 +15,11 @@
 - [3. Marco teórico](#3-marco-teórico)
 - [4. Materiales utilizados](#4-materiales-utilizados)
 - [5. Instalación de Xorg](#5-instalación-de-xorg)
-- [6. Configuración de SSH para X11 Forwarding](#6-configuración-de-ssh-para-x11-forwarding)
-- [7. Conexión remota con reenvío de X11](#7-conexión-remota-con-reenvío-de-x11)
-- [8. Ejecución de aplicaciones gráficas de prueba](#8-ejecución-de-aplicaciones-gráficas-de-prueba)
-- [9. Conclusión](#9-conclusión)
+- [6. Instalación de aplicaciones gráficas de prueba](#6-instalación-de-aplicaciones-gráficas-de-prueba)
+- [7. Configuración de SSH para X11 Forwarding](#7-configuración-de-ssh-para-x11-forwarding)
+- [8. Conexión remota con reenvío de X11](#8-conexión-remota-con-reenvío-de-x11)
+- [9. Ejecución de aplicaciones gráficas de prueba](#9-ejecución-de-aplicaciones-gráficas-de-prueba)
+- [10. Conclusión](#10-conclusión)
 
 ---
 
@@ -26,7 +27,7 @@
 
 En esta segunda etapa se amplió la Raspberry Pi configurada en la Actividad 1 instalando el servidor gráfico **Xorg**, sin gestor de ventanas ni entorno de escritorio. El objetivo es poder ejecutar aplicaciones gráficas instaladas en la Raspberry Pi a través de una conexión SSH, de manera que las ventanas se muestren en la computadora cliente.
 
-De esta forma la Raspberry Pi sigue funcionando como servidor liviano (sin escritorio), pero con la posibilidad de usar herramientas gráficas de forma remota cuando sea necesario. Como servidor X en el equipo cliente se utilizó **WSL2** con **WSLg**, que incluye soporte gráfico nativo sin necesidad de instalar software adicional en Windows.
+De esta forma la Raspberry Pi sigue funcionando como servidor liviano (sin escritorio), pero con la posibilidad de usar herramientas gráficas de forma remota cuando sea necesario.
 
 ---
 
@@ -37,9 +38,9 @@ Instalar el servidor gráfico Xorg en la Raspberry Pi, sin gestor de ventanas ni
 Objetivos específicos:
 
 - Instalar Xorg y las utilidades necesarias sin entorno de escritorio.
+- Instalar aplicaciones gráficas de prueba.
 - Comprobar que no se instaló ningún gestor de ventanas ni de escritorio.
 - Habilitar y verificar el reenvío de X11 en el servidor SSH.
-- Utilizar WSL2 como servidor X en el equipo cliente.
 - Conectarse con `ssh -X` y ejecutar aplicaciones gráficas de prueba.
 - Verificar que las ventanas se generan en el cliente.
 
@@ -55,8 +56,8 @@ Objetivos específicos:
 
 **Servidor X y cliente X:** en la terminología de X11 los roles pueden resultar contraintuitivos:
 
-- **Servidor X:** es el programa que está frente al usuario, maneja la pantalla, el teclado y el mouse, y dibuja las ventanas. En esta actividad corre en la **computadora cliente** (a través de WSL2).
-- **Cliente X:** es la aplicación gráfica (por ejemplo `xclock` o `xeyes`). Envía al servidor X las instrucciones de dibujo. En esta actividad corre en la **Raspberry Pi**.
+- **Servidor X:** es el programa que está frente al usuario, maneja la pantalla, el teclado y el mouse, y dibuja las ventanas. En esta actividad corre en la computadora cliente.
+- **Cliente X:** es la aplicación gráfica (por ejemplo `xclock` o `xeyes`). Envía al servidor X las instrucciones de dibujo. En esta actividad corre en la Raspberry Pi.
 
 Es decir que la aplicación se ejecuta (lógica, cálculos, archivos) en la Raspberry Pi, pero el dibujado de las ventanas lo realiza el equipo del usuario.
 
@@ -68,23 +69,21 @@ Es decir que la aplicación se ejecuta (lógica, cálculos, archivos) en la Rasp
 
 **`xauth`:** utilidad que administra las credenciales (*cookies*) que autorizan a una aplicación a conectarse a un servidor X.
 
-**WSL2 y WSLg:** WSL2 (Windows Subsystem for Linux 2) es una capa de compatibilidad de Microsoft que permite ejecutar un entorno Linux en Windows. WSLg (WSL GUI) es su componente gráfico integrado: provee un servidor X mediante XWayland, por lo que puede recibir ventanas reenviadas por SSH sin necesidad de instalar software adicional.
-
 ---
 
 ## 4. Materiales utilizados
 
 - Raspberry Pi con Raspberry Pi OS Lite y SSH habilitado (Actividad 1).
-- Computadora cliente con Windows y WSL2 (con WSLg) conectada a la misma red local.
-- Cliente SSH (terminal de WSL).
+- Computadora cliente con un servidor X en funcionamiento, conectada a la misma red local.
+- Cliente SSH instalado en la computadora cliente.
 
 | Elemento | Dato |
 |---|---|
-| Modelo de Raspberry Pi | Raspberry Pi 3 B+ |
+| Modelo de Raspberry Pi | Raspberry Pi 3 Model B Rev 1.2 |
 | Sistema operativo | Raspberry Pi OS Lite (sin entorno de escritorio) |
 | Usuario | `grupo4` |
 | Dirección IP | `192.168.60.215` |
-| Servidor X del cliente | WSL2 (WSLg / XWayland) |
+| Servidor X del cliente | Servidor gráfico X11 |
 
 ---
 
@@ -92,7 +91,7 @@ Es decir que la aplicación se ejecuta (lógica, cálculos, archivos) en la Rasp
 
 Primero se actualizó la lista de paquetes y se actualizaron los paquetes instalados. Luego se instaló el servidor gráfico y sus componentes:
 
-```
+```bash
 sudo apt update
 sudo apt full-upgrade -y
 sudo apt install xorg -y
@@ -109,7 +108,7 @@ sudo apt install xorg -y
 
 Se verificó la instalación con:
 
-```
+```bash
 Xorg -version
 ```
 
@@ -117,14 +116,44 @@ Xorg -version
 
 ![](./images/Image1.png)
 
+---
+
+## 6. Instalación de aplicaciones gráficas de prueba
+
+Para comprobar el funcionamiento de las aplicaciones gráficas, se instalaron `x11-apps` y `xauth`.
+
+```bash
+sudo apt install x11-apps xauth -y
+```
+
+**Explicación de los paquetes:**
+
+- `x11-apps`: incluye aplicaciones gráficas sencillas de prueba, como `xclock` y `xeyes`.
+- `xauth`: administra las credenciales de autenticación que permiten a las aplicaciones conectarse al servidor X.
+
+Estas herramientas permiten comprobar el reenvío de X11 sin necesidad de instalar un entorno de escritorio completo.
+
+Se verificó la disponibilidad de las aplicaciones mediante:
+
+```bash
+which xclock
+which xeyes
+which xauth
+```
+
+Los comandos muestran las rutas de los ejecutables cuando están instalados y disponibles en el `PATH`.
+
+### Evidencia
+
+![](./images/image5.png)
 
 ---
 
-## 6. Configuración de SSH para X11 Forwarding
+## 7. Configuración de SSH para X11 Forwarding
 
 Se consultó la configuración vigente del servidor SSH:
 
-```
+```bash
 sudo sshd -T | grep -i x11
 ```
 
@@ -134,12 +163,14 @@ sudo sshd -T | grep -i x11
 - `grep -i x11`: filtra las opciones relacionadas con X11, sin distinguir entre mayúsculas y minúsculas.
 
 Resultado obtenido:
-![](image.png)
-```
+
+```text
 x11displayoffset 10
 x11forwarding yes
 x11uselocalhost yes
 ```
+
+Estas opciones indican que el reenvío de X11 está habilitado y que el extremo local del túnel se limita a las interfaces de loopback.
 
 ### Evidencia
 
@@ -147,12 +178,12 @@ x11uselocalhost yes
 
 ---
 
-## 7. Conexión remota con reenvío de X11
+## 8. Conexión remota con reenvío de X11
 
-Desde la terminal de WSL se realizó la conexión habilitando el reenvío de X11:
+Desde la terminal de la computadora cliente se realizó la conexión habilitando el reenvío de X11:
 
-```
-ssh -X grupo4@192.168.60.182
+```bash
+ssh -X grupo4@192.168.60.215
 ```
 
 **Explicación del comando:**
@@ -163,31 +194,38 @@ ssh -X grupo4@192.168.60.182
 
 Una vez autenticado, se comprobó que SSH configuró la variable `DISPLAY`:
 
-```
+```bash
 echo $DISPLAY
 ```
 
 El resultado esperado es similar a `localhost:10.0`.
 
+Este valor indica que SSH configuró un punto de acceso al servidor X para la sesión remota.
+
+Para que funcione, la computadora cliente debe tener un servidor X en funcionamiento y el servidor SSH de la Raspberry debe permitir el reenvío de X11.
+
 ### Evidencia
 
 ![](./images/image3.png)
+
 ---
 
-## 8. Ejecución de aplicaciones gráficas de prueba
+## 9. Ejecución de aplicaciones gráficas de prueba
 
-Dentro de la sesión SSH se ejecutaron dos aplicaciones gráficas: `xeyes` y `xclock` (incluidas en `x11-apps`, de bajo consumo).
+Dentro de la sesión SSH se ejecutaron dos aplicaciones gráficas: `xeyes` y `xclock`, incluidas en el paquete `x11-apps`.
 
-```
+```bash
 xeyes &
 xclock &
 ```
 
-**Explicación del comando:**
+**Explicación de los comandos:**
 
-- `xeyes`: aplicación gráfica de prueba (ojos que siguen al cursor).
+- `xeyes`: aplicación gráfica de prueba que muestra unos ojos que siguen al cursor.
 - `xclock`: muestra un reloj analógico.
 - `&`: ejecuta el programa en segundo plano, dejando libre la terminal.
+
+Si la configuración es correcta, ambas ventanas deberían visualizarse en la computadora cliente, aunque los programas se estén ejecutando en la Raspberry Pi.
 
 ### Evidencia
 
@@ -195,6 +233,8 @@ xclock &
 
 ---
 
-## 9. Conclusión
+## 10. Conclusión
 
-Se instaló el servidor gráfico Xorg en la Raspberry Pi sin gestor de ventanas ni entorno de escritorio, manteniendo el sistema liviano. Se verificó el reenvío de X11 en el servicio SSH y, mediante `ssh -X` desde la terminal de WSL, se ejecutaron aplicaciones gráficas en la Raspberry Pi cuyas ventanas se mostraron en el equipo cliente. De esta manera la Raspberry Pi ejecuta la lógica de las aplicaciones, mientras que el dibujado de las ventanas lo realiza el servidor X del cliente (WSL2 con WSLg), sin necesidad de conectar un monitor al servidor.
+Se instaló el servidor gráfico Xorg en la Raspberry Pi sin gestor de ventanas ni entorno de escritorio, manteniendo el sistema liviano. También se instalaron las aplicaciones gráficas de prueba `x11-apps` y la utilidad `xauth`.
+
+Se verificó el reenvío de X11 en el servicio SSH y, mediante `ssh -X`, se ejecutaron aplicaciones gráficas en la Raspberry Pi cuyas ventanas se mostraron en el equipo cliente. De esta manera, la Raspberry Pi ejecuta la lógica de las aplicaciones, mientras que el servidor X del cliente proporciona la visualización de las ventanas, sin necesidad de conectar un monitor al servidor ni de instalar un escritorio gráfico completo.
