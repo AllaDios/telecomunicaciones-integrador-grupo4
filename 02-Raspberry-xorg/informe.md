@@ -1,222 +1,212 @@
-# Configuración del servidor gráfico X11 y reenvío remoto sobre SSH
+# Instalación del servidor gráfico Xorg y ejecución remota de aplicaciones gráficas por SSH
 
-**Materia:** Telecomunicaciones  
-**Trabajo Integrador**  
+**Materia:** Telecomunicaciones
+
+**Trabajo Integrador**
+
 **Integrantes:** Alladio - Conejero - Corti - Ferrazzuolo - Manfredini
 
 ---
 
 ## Índice
 
-1. [Introducción](#1-introducción)
-2. [Objetivo del informe](#2-objetivo-del-informe)
-3. [Desarrollo teórico](#3-desarrollo-teórico)
-4. [Configuración en la Raspberry Pi](#4-configuración-en-la-raspberry-pi)
-5. [Configuración del servidor X11 en el cliente](#5-configuración-del-servidor-x11-en-el-cliente)
-6. [Conexión remota mediante SSH con soporte X11](#6-conexión-remota-mediante-ssh-con-soporte-x11)
-7. [Explicación de los comandos](#7-explicación-de-los-comandos)
-8. [Pruebas de funcionamiento](#8-pruebas-de-funcionamiento)
-9. [Conclusión](#9-conclusión)
-10. [Bibliografía y fuentes consultadas](#10-bibliografía-y-fuentes-consultadas)
+- [1. Introducción](#1-introducción)
+- [2. Objetivo](#2-objetivo)
+- [3. Marco teórico](#3-marco-teórico)
+- [4. Materiales utilizados](#4-materiales-utilizados)
+- [5. Instalación de Xorg](#5-instalación-de-xorg)
+- [6. Configuración de SSH para X11 Forwarding](#6-configuración-de-ssh-para-x11-forwarding)
+- [7. Conexión remota con reenvío de X11](#7-conexión-remota-con-reenvío-de-x11)
+- [8. Ejecución de aplicaciones gráficas de prueba](#8-ejecución-de-aplicaciones-gráficas-de-prueba)
+- [9. Conclusión](#9-conclusión)
 
 ---
 
 ## 1. Introducción
 
-En esta actividad continuamos trabajando con la Raspberry Pi que configuramos en la entrega anterior. Esta vez habilitamos el reenvío gráfico X11 mediante SSH. Esto nos permite ejecutar aplicaciones gráficas en la Raspberry Pi y ver sus ventanas en nuestra computadora, sin tener que instalar un entorno de escritorio completo en la placa.
+En esta segunda etapa se amplió la Raspberry Pi configurada en la Actividad 1 instalando el servidor gráfico **Xorg**, sin gestor de ventanas ni entorno de escritorio. El objetivo es poder ejecutar aplicaciones gráficas instaladas en la Raspberry Pi a través de una conexión SSH, de manera que las ventanas se muestren en la computadora cliente.
+
+De esta forma la Raspberry Pi sigue funcionando como servidor liviano (sin escritorio), pero con la posibilidad de usar herramientas gráficas de forma remota cuando sea necesario. Como servidor X en el equipo cliente se utilizó **WSL2** con **WSLg**, que incluye soporte gráfico nativo sin necesidad de instalar software adicional en Windows.
 
 ---
 
-## 2. Objetivo del informe
+## 2. Objetivo
 
-- Instalar las herramientas necesarias para ejecutar aplicaciones X11 en Raspberry Pi OS Lite.
-- Habilitar y comprobar el reenvío X11 en el servidor SSH.
-- Configurar un servidor X11 en la computadora con Windows utilizando XLaunch.
-- Conectarnos a la Raspberry Pi mediante SSH y ejecutar aplicaciones gráficas de forma remota.
-- Comprobar el funcionamiento con las aplicaciones `xclock` y `xeyes`.
+Instalar el servidor gráfico Xorg en la Raspberry Pi, sin gestor de ventanas ni gestor de escritorio, y configurar el servicio SSH para reenviar la interfaz gráfica (*X11 Forwarding*), de modo que las aplicaciones gráficas ejecutadas en la Raspberry Pi se visualicen en el equipo cliente.
+
+Objetivos específicos:
+
+- Instalar Xorg y las utilidades necesarias sin entorno de escritorio.
+- Comprobar que no se instaló ningún gestor de ventanas ni de escritorio.
+- Habilitar y verificar el reenvío de X11 en el servidor SSH.
+- Utilizar WSL2 como servidor X en el equipo cliente.
+- Conectarse con `ssh -X` y ejecutar aplicaciones gráficas de prueba.
+- Verificar que las ventanas se generan en el cliente.
 
 ---
 
-## 3. Desarrollo teórico
+## 3. Marco teórico
 
-### 3.1. X11
+**Servidor gráfico:** programa encargado de gestionar la pantalla, el teclado y el mouse, y de dibujar las ventanas de las aplicaciones. Sin un servidor gráfico, un sistema solo puede mostrar texto en la terminal.
 
-X11, también conocido como X Window System, es un sistema que permite ejecutar aplicaciones gráficas y mostrar sus ventanas en una pantalla. En esta arquitectura, el servidor X se encarga de mostrar las ventanas y recibir las acciones del teclado y del mouse, mientras que las aplicaciones envían las instrucciones gráficas.
+**X Window System (X11):** sistema de ventanas para entornos Unix/Linux basado en una arquitectura **cliente-servidor**. Una característica importante es su **transparencia de red**: la aplicación y el servidor gráfico pueden estar en equipos distintos.
 
-En nuestro caso:
+**Xorg:** implementación libre y ampliamente utilizada del servidor X11.
 
-- La **Raspberry Pi** ejecuta las aplicaciones gráficas, por lo que actúa como cliente X.
-- La **computadora con Windows** muestra las ventanas mediante un servidor X, como XLaunch.
+**Servidor X y cliente X:** en la terminología de X11 los roles pueden resultar contraintuitivos:
 
-```text
-Raspberry Pi (aplicación gráfica) → Túnel SSH con X11 → Computadora (servidor X)
+- **Servidor X:** es el programa que está frente al usuario, maneja la pantalla, el teclado y el mouse, y dibuja las ventanas. En esta actividad corre en la **computadora cliente** (a través de WSL2).
+- **Cliente X:** es la aplicación gráfica (por ejemplo `xclock` o `xeyes`). Envía al servidor X las instrucciones de dibujo. En esta actividad corre en la **Raspberry Pi**.
+
+Es decir que la aplicación se ejecuta (lógica, cálculos, archivos) en la Raspberry Pi, pero el dibujado de las ventanas lo realiza el equipo del usuario.
+
+**Gestor de ventanas y gestor de escritorio:** el gestor de ventanas (por ejemplo Openbox) maneja el aspecto y la posición de las ventanas (bordes, barras de título, mover y redimensionar). El entorno de escritorio (por ejemplo XFCE o GNOME) incluye además panel, menús, aplicaciones y configuración. En esta actividad **no se instala ninguno de los dos**, ya que las ventanas serán gestionadas por el equipo cliente.
+
+**X11 Forwarding sobre SSH:** funcionalidad de SSH que crea un túnel cifrado por el cual viaja el tráfico de X11. Al conectarse con `ssh -X`, SSH define automáticamente la variable de entorno `DISPLAY` en el servidor apuntando al extremo del túnel, y gestiona las credenciales de autenticación de X mediante `xauth`. Así, cualquier aplicación gráfica lanzada en la sesión SSH se mostrará en el servidor X del cliente.
+
+**Variable `DISPLAY`:** indica a las aplicaciones gráficas dónde deben mostrar sus ventanas. Con X11 Forwarding toma un valor similar a `localhost:10.0`.
+
+**`xauth`:** utilidad que administra las credenciales (*cookies*) que autorizan a una aplicación a conectarse a un servidor X.
+
+**WSL2 y WSLg:** WSL2 (Windows Subsystem for Linux 2) es una capa de compatibilidad de Microsoft que permite ejecutar un entorno Linux en Windows. WSLg (WSL GUI) es su componente gráfico integrado: provee un servidor X mediante XWayland, por lo que puede recibir ventanas reenviadas por SSH sin necesidad de instalar software adicional.
+
+---
+
+## 4. Materiales utilizados
+
+- Raspberry Pi con Raspberry Pi OS Lite y SSH habilitado (Actividad 1).
+- Computadora cliente con Windows y WSL2 (con WSLg) conectada a la misma red local.
+- Cliente SSH (terminal de WSL).
+
+| Elemento | Dato |
+|---|---|
+| Modelo de Raspberry Pi | Raspberry Pi 3 B+ |
+| Sistema operativo | Raspberry Pi OS Lite (sin entorno de escritorio) |
+| Usuario | `grupo4` |
+| Dirección IP | `192.168.60.182` |
+| Servidor X del cliente | WSL2 (WSLg / XWayland) |
+
+---
+
+## 5. Instalación de Xorg
+
+Primero se actualizó la lista de paquetes y se actualizaron los paquetes instalados. Luego se instaló el servidor gráfico y sus componentes:
+
 ```
-
-### 3.2. X11 Forwarding sobre SSH
-
-X11 Forwarding es una función de SSH que permite transportar los datos de las aplicaciones gráficas a través de una conexión cifrada. Así podemos utilizar programas gráficos de la Raspberry Pi y ver sus ventanas en la computadora cliente, sin exponer directamente el tráfico X11 a la red.
-
-### 3.3. Uso de Raspberry Pi OS Lite
-
-Raspberry Pi OS Lite no incluye un entorno de escritorio completo. Esto reduce el consumo de memoria y procesador, algo útil cuando la Raspberry Pi se utiliza como servidor. Con X11 Forwarding podemos abrir únicamente las aplicaciones gráficas que necesitamos, sin instalar un escritorio completo en la placa.
-
----
-
-## 4. Configuración en la Raspberry Pi
-
-### 4.1. Instalación de paquetes y herramientas de prueba
-
-Una vez conectados por SSH a la Raspberry Pi, instalamos `xauth` y las aplicaciones de prueba de X11:
-
-```bash
 sudo apt update
-sudo apt install -y xauth x11-apps
+sudo apt full-upgrade -y
+sudo apt install xorg -y
 ```
 
-`xauth` permite gestionar la autorización para las conexiones X11, mientras que `x11-apps` incluye programas gráficos que podemos utilizar para comprobar el funcionamiento.
+**Explicación de los comandos:**
 
-### 4.2. Habilitación de X11 Forwarding en SSH
+- `sudo`: ejecuta el comando con privilegios administrativos.
+- `apt update`: actualiza la lista de paquetes disponibles en los repositorios.
+- `apt full-upgrade`: actualiza los paquetes instalados a sus versiones disponibles y puede instalar o quitar paquetes para resolver dependencias.
+- `apt install`: instala los paquetes indicados.
+- `xorg`: metapaquete que instala el servidor gráfico Xorg y sus componentes.
+- `-y`: responde "sí" automáticamente a las confirmaciones.
 
-Abrimos el archivo de configuración del servidor SSH:
+Se verificó la instalación con:
 
-```bash
-sudo nano /etc/ssh/sshd_config
+```
+Xorg -version
 ```
 
-Verificamos que las siguientes directivas estén habilitadas:
+### Evidencia
 
-```text
-X11Forwarding yes
-X11DisplayOffset 10
-X11UseLocalhost yes
-```
-
-Guardamos los cambios y reiniciamos el servicio SSH para aplicarlos:
-
-```bash
-sudo systemctl restart ssh
-```
+Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
 
 ---
 
-## 5. Configuración del servidor X11 en el cliente
+## 6. Configuración de SSH para X11 Forwarding
 
-Para mostrar las ventanas gráficas en Windows utilizamos **XLaunch**, incluido con VcXsrv. Configuramos el servidor X de la siguiente manera:
+Se consultó la configuración vigente del servidor SSH:
 
-1. Seleccionamos **Multiple windows**, para que cada aplicación remota aparezca en una ventana independiente.
-2. En la pantalla de inicio del cliente seleccionamos **Start no client**, porque iniciaremos las aplicaciones desde la terminal SSH.
-3. En las opciones adicionales activamos **Disable access control** o **No Access Control**, según la versión del programa utilizada.
-4. Finalizamos el asistente y dejamos el servidor X11 funcionando en segundo plano.
+```
+sudo sshd -T | grep -i x11
+```
+
+**Explicación del comando:**
+
+- `sshd -T`: muestra la configuración efectiva del servidor SSH.
+- `grep -i x11`: filtra las opciones relacionadas con X11, sin distinguir entre mayúsculas y minúsculas.
+
+Resultado obtenido:
+
+```
+x11displayoffset 10
+x11forwarding yes
+x11uselocalhost yes
+```
+
+### Evidencia
+
+Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
 
 ---
 
-## 6. Conexión remota mediante SSH con soporte X11
+## 7. Conexión remota con reenvío de X11
 
-### 6.1. Configuración de la variable DISPLAY en Windows
+Desde la terminal de WSL se realizó la conexión habilitando el reenvío de X11:
 
-Antes de iniciar la conexión SSH, configuramos la variable `DISPLAY` desde PowerShell para indicar la pantalla del servidor X local:
-
-```powershell
-$env:DISPLAY="localhost:0.0"
+```
+ssh -X grupo4@192.168.60.182
 ```
 
-### 6.2. Inicio de la sesión SSH
+**Explicación del comando:**
 
-Nos conectamos a la Raspberry Pi utilizando la opción `-Y`, que habilita el reenvío confiable de X11:
+- `ssh`: establece una conexión mediante el protocolo SSH.
+- `-X`: habilita el reenvío de X11 (*X11 Forwarding*).
+- `grupo4@192.168.60.182`: usuario y dirección IP de la Raspberry Pi.
 
-```bash
-ssh -Y grupo4@192.168.60.182
+Una vez autenticado, se comprobó que SSH configuró la variable `DISPLAY`:
+
 ```
-
-Una vez dentro de la Raspberry Pi, consultamos la variable `DISPLAY`:
-
-```bash
 echo $DISPLAY
 ```
 
-El resultado esperado es similar al siguiente:
+El resultado esperado es similar a `localhost:10.0`.
 
-```text
-localhost:10.0
-```
+### Evidencia
 
-Este valor indica que SSH configuró la pantalla virtual que utilizarán las aplicaciones gráficas para enviar sus ventanas al equipo cliente.
+Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
 
 ---
 
-## 7. Explicación de los comandos
+## 8. Ejecución de aplicaciones gráficas de prueba
 
-### `sudo apt update`
+Dentro de la sesión SSH se ejecutaron tres aplicaciones gráficas: `xeyes` y `xclock` (incluidas en `x11-apps`, de bajo consumo) y el juego `quadrapassel` (un Tetris), que permite probar una aplicación interactiva real.
 
-Actualiza la lista de paquetes disponibles en los repositorios para que el sistema pueda consultar las versiones más recientes.
-
-### `sudo apt install -y xauth x11-apps`
-
-- `sudo`: ejecuta el comando con permisos de administrador.
-- `apt install`: instala los paquetes indicados.
-- `-y`: confirma automáticamente las preguntas de instalación.
-- `xauth`: administra las claves de autorización de X11.
-- `x11-apps`: instala aplicaciones gráficas de prueba.
-
-### `sudo nano /etc/ssh/sshd_config`
-
-Abre el archivo de configuración del servidor SSH con el editor de texto `nano`. Allí se habilitan las opciones relacionadas con el reenvío X11.
-
-### `sudo systemctl restart ssh`
-
-Reinicia el servicio SSH para que se apliquen los cambios realizados en su configuración.
-
-### `$env:DISPLAY="localhost:0.0"`
-
-Comando de PowerShell que establece la variable `DISPLAY` en la sesión local de Windows. Esta variable indica dónde se encuentra la pantalla gráfica.
-
-### `ssh -Y usuario@IP`
-
-- `ssh`: inicia una conexión remota.
-- `-Y`: habilita el reenvío confiable de X11.
-- `usuario`: nombre de usuario de la Raspberry Pi.
-- `IP`: dirección de la Raspberry Pi en la red.
-
-### `echo $DISPLAY`
-
-Muestra el valor de la variable `DISPLAY` en la Raspberry Pi. Un valor como `localhost:10.0` indica que SSH preparó el destino para el reenvío gráfico.
-
-### `xclock` y `xeyes`
-
-- `xclock`: abre una ventana gráfica con un reloj.
-- `xeyes`: abre una ventana con dos ojos que siguen el movimiento del cursor.
-
-Estos programas sirven para comprobar que las aplicaciones gráficas de la Raspberry Pi pueden mostrarse en Windows.
-
----
-
-## 8. Pruebas de funcionamiento
-
-Con XLaunch activo en Windows y la conexión SSH abierta, ejecutamos en la terminal de la Raspberry Pi:
-
-```bash
-xclock
+```
+xeyes &
+xclock &
 ```
 
-Después ejecutamos:
+**Explicación del comando:**
 
-```bash
-xeyes
+- `xeyes`: aplicación gráfica de prueba (ojos que siguen al cursor).
+- `xclock`: muestra un reloj analógico.
+- `&`: ejecuta el programa en segundo plano, dejando libre la terminal.
+
+Se instaló el juego sin gestor de ventanas ni entorno de escritorio:
+
+```
+sudo apt install quadrapassel -y
 ```
 
-**Resultado:** las ventanas de las aplicaciones se mostraron en el escritorio de Windows. De esta manera comprobamos que los programas se ejecutan en la Raspberry Pi, mientras que las ventanas se visualizan en la computadora cliente mediante el reenvío X11 por SSH.
+Y se ejecutó:
+
+```
+quadrapassel &
+```
+
+### Evidencia
+
+Las capturas de evidencia mencionadas en el texto de referencia no están disponibles como archivos locales, por lo que no se incluyen enlaces a imágenes.
 
 ---
 
 ## 9. Conclusión
 
-Habilitamos el reenvío gráfico X11 sobre SSH y comprobamos su funcionamiento mediante las aplicaciones `xclock` y `xeyes`. Esta configuración permite ejecutar aplicaciones gráficas en la Raspberry Pi sin instalar un entorno de escritorio completo. Además, al utilizar SSH, la comunicación entre la Raspberry Pi y la computadora cliente viaja por una conexión cifrada.
-
----
-
-## 10. Bibliografía y fuentes consultadas
-
-- Raspberry Pi, documentación oficial: https://www.raspberrypi.com/documentation/
-- Debian Wiki, X11 Forwarding: https://wiki.debian.org/X11Forwarding
-- Chris Titus Tech, *Remote GUI Applications via SSH X11 Forwarding*.
-- Unix & Linux Stack Exchange, consultas sobre el reenvío de X11 mediante SSH.
+Se instaló el servidor gráfico Xorg en la Raspberry Pi sin gestor de ventanas ni entorno de escritorio, manteniendo el sistema liviano. Se verificó el reenvío de X11 en el servicio SSH y, mediante `ssh -X` desde la terminal de WSL, se ejecutaron aplicaciones gráficas en la Raspberry Pi cuyas ventanas se mostraron en el equipo cliente. De esta manera la Raspberry Pi ejecuta la lógica de las aplicaciones, mientras que el dibujado de las ventanas lo realiza el servidor X del cliente (WSL2 con WSLg), sin necesidad de conectar un monitor al servidor.
