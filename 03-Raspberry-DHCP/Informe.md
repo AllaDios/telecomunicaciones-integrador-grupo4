@@ -105,11 +105,7 @@ Objetivos específicos:
 
 La red del grupo se arma con el switch como elemento central:
 
-```
-   Raspberry Pi (192.168.4.1)  ──┐
-                                 ├── SWITCH ── Notebooks (clientes DHCP)
-   Notebooks                   ──┘
-```
+![alt text](image.png)
 
 - La Raspberry Pi se conecta por su puerto Ethernet (`eth0`) al switch y brinda el servicio DHCP.
 - Las notebooks se conectan al mismo switch y obtienen su configuración de forma automática.
