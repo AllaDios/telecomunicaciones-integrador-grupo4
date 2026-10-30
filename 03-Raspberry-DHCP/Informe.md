@@ -163,7 +163,7 @@ Al finalizar la instalación el servicio intenta iniciarse y falla, ya que todav
 
 ### Evidencia
 
-![](./images/image1.png)
+![](./images/image1.jpeg)
 
 ---
 
@@ -224,7 +224,7 @@ Cada línea de configuración termina en punto y coma (`;`); su ausencia es el e
 
 ### Evidencia
 
-![](./images/image2.png)
+![](./images/image2.jpeg)
 
 ---
 
@@ -261,7 +261,7 @@ Los mensajes `is not a native service, redirecting to systemd-sysv-install` son 
 
 ### Evidencia
 
-![](./images/image3.png)
+![](./images/image3.jpeg)
 
 ---
 
