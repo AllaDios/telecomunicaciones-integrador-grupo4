@@ -174,9 +174,6 @@ sudo systemctl status vsftpd
 
 Si aparece `active (running)`, significa que el servidor se encuentra funcionando.
 
-### Evidencia
-
-[Insertar captura de la instalación de vsftpd y de la consulta de su estado].
 
 ---
 
@@ -249,9 +246,6 @@ local_root=/home/$USER/ftp
 
 Una vez realizadas las modificaciones, se guardó el archivo y se cerró nano.
 
-### Evidencia
-
-[Insertar captura del archivo `/etc/vsftpd.conf` con las directivas configuradas].
 
 ---
 
@@ -302,10 +296,6 @@ sudo chown pi:pi /home/pi/ftp/uploads
 Esta configuración permite que el directorio principal no sea modificable, mientras que la carpeta `uploads` sí permite almacenar archivos.
 
 De esta manera, el usuario queda restringido a su directorio FTP y puede realizar transferencias dentro de la carpeta habilitada.
-
-### Evidencia
-
-[Insertar captura de la creación de las carpetas y de la modificación de permisos].
 
 ---
 
@@ -407,15 +397,6 @@ Las pruebas realizadas permitieron comprobar que:
 
 Por lo tanto, se verificó el correcto funcionamiento del servidor FTP dentro de la red LAN del grupo.
 
-### Evidencia
-
-[Insertar captura de FileZilla mostrando la conexión establecida].
-
-[Insertar captura de la subida de un archivo al servidor].
-
-[Insertar captura de la descarga de un archivo desde el servidor].
-
-[Insertar captura del comando `ls -l /home/pi/ftp/uploads/` mostrando los archivos recibidos].
 
 ---
 
