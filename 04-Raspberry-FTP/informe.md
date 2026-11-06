@@ -405,13 +405,13 @@ Por lo tanto, se verificó el correcto funcionamiento del servidor FTP dentro de
 
 En esta etapa del trabajo integrador se instaló y configuró vsftpd en la Raspberry Pi para convertirla en un servidor FTP de la red LAN del grupo.
 
-Durante la actividad se aprendió cómo funciona el protocolo FTP, la diferencia entre el modo activo y el modo pasivo, y la importancia de configurar correctamente los canales de control y de datos p[...]
+Durante la actividad se aprendió cómo funciona el protocolo FTP, la diferencia entre el modo activo y el modo pasivo, y la importancia de configurar correctamente los canales de control y de datos
 
-También se trabajó con la configuración de usuarios y contraseñas, los permisos del sistema de archivos de Linux y el mecanismo chroot, que permite restringir el acceso de los usuarios a un direct[...]
+También se trabajó con la configuración de usuarios y contraseñas, los permisos del sistema de archivos de Linux y el mecanismo chroot, que permite restringir el acceso de los usuarios a un directorio
 
 Mediante FileZilla se comprobó que las notebooks conectadas al switch pueden establecer una conexión con la Raspberry Pi, subir archivos al servidor y descargarlos correctamente.
 
-Esta actividad permitió incorporar un nuevo servicio a la infraestructura de red que se viene desarrollando desde las entregas anteriores. De esta manera, la Raspberry Pi no solamente cumple la funci[...]
+Esta actividad permitió incorporar un nuevo servicio a la infraestructura de red que se viene desarrollando desde las entregas anteriores. De esta manera, la Raspberry Pi no solamente cumple la funcion
 
 En conclusión, se logró implementar un sistema de transferencia de archivos dentro de la LAN, comprendiendo tanto su funcionamiento teórico como su configuración y utilización práctica.
 
