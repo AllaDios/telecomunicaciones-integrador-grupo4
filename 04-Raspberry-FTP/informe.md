@@ -43,11 +43,11 @@
 
 En esta nueva etapa del trabajo integrador se configuró la Raspberry Pi de las actividades anteriores como **servidor FTP** de la red local del grupo, utilizando el software vsftpd.
 
-En las entregas anteriores se preparó la Raspberry Pi con Raspberry Pi OS Lite, se habilitó el acceso remoto mediante SSH y se configuró como servidor DHCP para asignar direcciones IP automáticamente a los dispositivos conectados a la red LAN.
+En las entregas anteriores se preparó la Raspberry Pi con Raspberry Pi OS Lite, se habilitó el acceso remoto mediante SSH y se configuró como servidor DHCP para asignar direcciones IP automáticame[...]
 
-En esta actividad se incorporó un nuevo servicio que permite compartir y transferir archivos entre las notebooks de los integrantes y la Raspberry Pi, utilizando el protocolo FTP (File Transfer Protocol).
+En esta actividad se incorporó un nuevo servicio que permite compartir y transferir archivos entre las notebooks de los integrantes y la Raspberry Pi, utilizando el protocolo FTP (File Transfer Proto[...]
 
-La red local del grupo 4 utiliza el segmento `192.168.4.0/24`. La Raspberry Pi mantiene su dirección IP fija `192.168.4.1`, mientras que las notebooks se conectan al switch y pueden acceder al servidor para subir y descargar archivos.
+La red local del grupo 4 utiliza el segmento `192.168.4.0/24`. La Raspberry Pi mantiene su dirección IP fija `192.168.4.1`, mientras que las notebooks se conectan al switch y pueden acceder al servid[...]
 
 Para realizar las transferencias se utilizó FileZilla, un programa que permite conectarse al servidor FTP mediante una interfaz gráfica.
 
@@ -73,28 +73,28 @@ Objetivos específicos:
 
 ## 3. Marco teórico
 
-**FTP (File Transfer Protocol):** es un protocolo de nivel de aplicación del modelo OSI que permite transferir archivos entre dos dispositivos conectados a una red TCP/IP. Funciona mediante un modelo cliente-servidor, donde el servidor espera conexiones y los clientes se conectan para subir, descargar o consultar archivos.
+**FTP (File Transfer Protocol):** es un protocolo de nivel de aplicación del modelo OSI que permite transferir archivos entre dos dispositivos conectados a una red TCP/IP. Funciona mediante un modelo[...]
 
-**Servidor FTP y cliente FTP:** el servidor es el equipo que almacena y administra los archivos disponibles para transferir. El cliente es el dispositivo que se conecta al servidor para realizar operaciones. En esta actividad, la Raspberry Pi cumple la función de servidor FTP y las notebooks funcionan como clientes.
+**Servidor FTP y cliente FTP:** el servidor es el equipo que almacena y administra los archivos disponibles para transferir. El cliente es el dispositivo que se conecta al servidor para realizar opera[...]
 
 **Canal de control y canal de datos:** FTP utiliza dos canales separados:
 
 - Canal de control: utiliza el puerto TCP 21 y permite enviar comandos, autenticar usuarios y administrar las conexiones.
 - Canal de datos: se utiliza para transferir los archivos. En modo activo utiliza el puerto 20 del servidor, mientras que en modo pasivo utiliza puertos variables dentro de un rango configurado.
 
-**Modo activo:** el cliente establece la conexión de control con el servidor, pero es el servidor quien inicia la conexión de datos hacia el cliente. Puede generar problemas cuando existen firewalls o restricciones de red.
+**Modo activo:** el cliente establece la conexión de control con el servidor, pero es el servidor quien inicia la conexión de datos hacia el cliente. Puede generar problemas cuando existen firewalls[...]
 
-**Modo pasivo:** el cliente inicia tanto la conexión de control como la conexión de datos hacia el servidor. Es más compatible con redes modernas y evita algunos problemas relacionados con firewalls.
+**Modo pasivo:** el cliente inicia tanto la conexión de control como la conexión de datos hacia el servidor. Es más compatible con redes modernas y evita algunos problemas relacionados con firewall[...]
 
 En esta actividad se utilizó el modo pasivo, configurando un rango de puertos entre `10000` y `10100`.
 
-**vsftpd (Very Secure FTP Daemon):** es un servidor FTP desarrollado para sistemas Linux. Se caracteriza por ser liviano, consumir pocos recursos y ofrecer distintas opciones de configuración y seguridad. Su archivo principal de configuración es `/etc/vsftpd.conf`.
+**vsftpd (Very Secure FTP Daemon):** es un servidor FTP desarrollado para sistemas Linux. Se caracteriza por ser liviano, consumir pocos recursos y ofrecer distintas opciones de configuración y segur[...]
 
-**FileZilla:** es un programa cliente FTP de código abierto que permite conectarse a servidores y transferir archivos mediante una interfaz gráfica. Presenta dos paneles: uno para los archivos de la computadora local y otro para los archivos del servidor remoto.
+**FileZilla:** es un programa cliente FTP de código abierto que permite conectarse a servidores y transferir archivos mediante una interfaz gráfica. Presenta dos paneles: uno para los archivos de la[...]
 
-**Autenticación:** mecanismo mediante el cual el servidor verifica la identidad del usuario que intenta conectarse. En nuestra configuración se deshabilitó el acceso anónimo y se habilitó el acceso mediante usuarios locales y contraseña.
+**Autenticación:** mecanismo mediante el cual el servidor verifica la identidad del usuario que intenta conectarse. En nuestra configuración se deshabilitó el acceso anónimo y se habilitó el acce[...]
 
-**Chroot:** mecanismo que permite restringir a un usuario a un directorio determinado del sistema de archivos. De esta manera, el usuario FTP no puede navegar libremente por el resto de los directorios del sistema.
+**Chroot:** mecanismo que permite restringir a un usuario a un directorio determinado del sistema de archivos. De esta manera, el usuario FTP no puede navegar libremente por el resto de los directorio[...]
 
 **Permisos de Linux:** determinan qué usuarios pueden leer, escribir o ejecutar archivos y directorios. Son importantes para controlar dónde se pueden almacenar los archivos transferidos.
 
@@ -177,6 +177,7 @@ Si aparece `active (running)`, significa que el servidor se encuentra funcionand
 
 ---
 
+
 ## 7. Configuración del servicio FTP
 
 ### 7.1 Copia de seguridad del archivo de configuración
@@ -253,24 +254,24 @@ Una vez realizadas las modificaciones, se guardó el archivo y se cerró nano.
 
 ### 8.1 Creación de la estructura de carpetas
 
-Para almacenar los archivos transferidos se creó un directorio FTP dentro del directorio personal del usuario `pi`.
+Para almacenar los archivos transferidos se creó un directorio FTP dentro del directorio personal del usuario `grupo4`.
 
 Se utilizó el siguiente comando:
 
 ```bash
-mkdir -p /home/pi/ftp/uploads
+mkdir -p /home/grupo4/ftp/uploads
 ```
 
 **Explicación del comando:**
 
 - `mkdir`: crea directorios.
 - `-p`: permite crear también los directorios intermedios que todavía no existen.
-- `/home/pi/ftp/uploads`: ubicación donde se almacenarán los archivos enviados al servidor.
+- `/home/grupo4/ftp/uploads`: ubicación donde se almacenarán los archivos enviados al servidor.
 
 La estructura resultante es:
 
 ```text
-/home/pi/
+/home/grupo4/
     └── ftp/
         └── uploads/
 ```
@@ -282,16 +283,16 @@ Se modificaron los permisos y propietarios de los directorios para cumplir con l
 Se ejecutaron los siguientes comandos:
 
 ```bash
-sudo chown nobody:nogroup /home/pi/ftp
-sudo chmod a-w /home/pi/ftp
-sudo chown pi:pi /home/pi/ftp/uploads
+sudo chown nobody:nogroup /home/grupo4/ftp
+sudo chmod a-w /home/grupo4/ftp
+sudo chown grupo4:grupo4 /home/grupo4/ftp/uploads
 ```
 
 **Explicación de los comandos:**
 
-- `chown nobody:nogroup /home/pi/ftp`: cambia el propietario y el grupo del directorio FTP a `nobody` y `nogroup`.
-- `chmod a-w /home/pi/ftp`: quita los permisos de escritura para todos los usuarios en el directorio raíz FTP.
-- `chown pi:pi /home/pi/ftp/uploads`: asigna la propiedad de la carpeta `uploads` al usuario `pi`.
+- `chown nobody:nogroup /home/grupo4/ftp`: cambia el propietario y el grupo del directorio FTP a `nobody` y `nogroup`.
+- `chmod a-w /home/grupo4/ftp`: quita los permisos de escritura para todos los usuarios en el directorio raíz FTP.
+- `chown grupo4:grupo4 /home/grupo4/ftp/uploads`: asigna la propiedad de la carpeta `uploads` al usuario `grupo4`.
 
 Esta configuración permite que el directorio principal no sea modificable, mientras que la carpeta `uploads` sí permite almacenar archivos.
 
@@ -342,8 +343,8 @@ Los parámetros utilizados fueron:
 | Campo | Valor |
 |---|---|
 | Host | `192.168.4.1` |
-| Usuario | `pi` |
-| Contraseña | Contraseña del usuario `pi` |
+| Usuario | `grupo4` |
+| Contraseña | Contraseña del usuario `grupo4` |
 | Puerto | `21` |
 
 Una vez completados los campos, se hizo clic en **Conexión rápida**.
@@ -351,7 +352,7 @@ Una vez completados los campos, se hizo clic en **Conexión rápida**.
 FileZilla intentó establecer la conexión con la Raspberry Pi. Cuando la conexión fue exitosa, apareció en el panel derecho el contenido del directorio remoto:
 
 ```text
-/home/pi/ftp/uploads
+/home/grupo4/ftp/uploads
 ```
 
 El panel izquierdo muestra los archivos de la notebook, mientras que el panel derecho muestra los archivos almacenados en el servidor.
@@ -367,7 +368,7 @@ Una vez finalizada la operación, el archivo apareció dentro del directorio rem
 También se verificó desde la Raspberry Pi que el archivo se hubiera recibido correctamente:
 
 ```bash
-ls -l /home/pi/ftp/uploads/
+ls -l /home/grupo4/ftp/uploads/
 ```
 
 **Explicación del comando:**
@@ -404,12 +405,13 @@ Por lo tanto, se verificó el correcto funcionamiento del servidor FTP dentro de
 
 En esta etapa del trabajo integrador se instaló y configuró vsftpd en la Raspberry Pi para convertirla en un servidor FTP de la red LAN del grupo.
 
-Durante la actividad se aprendió cómo funciona el protocolo FTP, la diferencia entre el modo activo y el modo pasivo, y la importancia de configurar correctamente los canales de control y de datos para permitir las transferencias de archivos.
+Durante la actividad se aprendió cómo funciona el protocolo FTP, la diferencia entre el modo activo y el modo pasivo, y la importancia de configurar correctamente los canales de control y de datos p[...]
 
-También se trabajó con la configuración de usuarios y contraseñas, los permisos del sistema de archivos de Linux y el mecanismo chroot, que permite restringir el acceso de los usuarios a un directorio determinado.
+También se trabajó con la configuración de usuarios y contraseñas, los permisos del sistema de archivos de Linux y el mecanismo chroot, que permite restringir el acceso de los usuarios a un direct[...]
 
 Mediante FileZilla se comprobó que las notebooks conectadas al switch pueden establecer una conexión con la Raspberry Pi, subir archivos al servidor y descargarlos correctamente.
 
-Esta actividad permitió incorporar un nuevo servicio a la infraestructura de red que se viene desarrollando desde las entregas anteriores. De esta manera, la Raspberry Pi no solamente cumple la función de servidor DHCP, sino que también funciona como servidor FTP, permitiendo centralizar la administración y transferencia de archivos dentro de la red local del grupo.
+Esta actividad permitió incorporar un nuevo servicio a la infraestructura de red que se viene desarrollando desde las entregas anteriores. De esta manera, la Raspberry Pi no solamente cumple la funci[...]
 
 En conclusión, se logró implementar un sistema de transferencia de archivos dentro de la LAN, comprendiendo tanto su funcionamiento teórico como su configuración y utilización práctica.
+
